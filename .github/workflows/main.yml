@@ -1,4 +1,4 @@
-name: CI   # (optional but recommended)
+name: CI
 
 on:
   push:
@@ -13,6 +13,9 @@ jobs:
 
       - uses: flipt-io/setup-action@v0.5.0
         with:
-          version: v2 # Installs the latest v2 release
+          version: v2
 
+      # Pass GitHub token to flipt
       - run: flipt validate
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
