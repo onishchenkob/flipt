@@ -1,7 +1,160 @@
-storage:
-  default:
-    name: default
-    remote: .
-    backend:
-      type: memory
+# ==============================================================================
+# Comprehensive Flipt v2 Example File
+#
+# This file demonstrates a wide range of Flipt features for testing purposes.
+# It includes multiple namespaces, segments, boolean flags, variant flags,
+# and complex targeting rules.
+#
+# REMINDER: The version must be in Major.Minor.Patch format (SemVer).
+# ==============================================================================
+version: "1.0.0"
 
+namespaces:
+  - key: default
+    name: Default Namespace
+    description: For general application features.
+  - key: experimental
+    name: Experimental Features
+    description: For features that are not ready for production.
+
+segments:
+  # A segment for internal team members based on their email domain.
+  - key: internal-team
+    name: Internal Team
+    description: Employees of our company.
+    constraints:
+      - type: STRING
+        property: email
+        comparison: ENDS_WITH
+        value: "@your-company.com"
+
+  # A segment for beta testers, identified by a list of user IDs.
+  - key: beta-testers
+    name: Beta Testers
+    description: Users who have opted-in to beta testing.
+    constraints:
+      - type: STRING
+        property: user_id
+        comparison: IN
+        values:
+          - "user_101"
+          - "user_202"
+          - "user_303"
+
+  # A segment combining multiple properties for high-value customers.
+  - key: premium-customers-us
+    name: Premium Customers (US)
+    description: Customers on the premium plan located in the United States.
+    match_type: ALL # Both constraints must be true (AND logic)
+    constraints:
+      - type: STRING
+        property: plan
+        comparison: EQ
+        value: "premium"
+      - type: STRING
+        property: country_code
+        comparison: EQ
+        value: "US"
+
+features:
+  # ========================================================================
+  # Feature Flag 1: A simple boolean (on/off) flag.
+  # NAMESPACE: default
+  # ========================================================================
+  - name: New Dashboard UI
+    key: new-dashboard-ui
+    namespace_key: default
+    description: Toggles the new redesigned dashboard.
+    enabled: false # Disabled by default for everyone.
+    rules:
+      # Rule 1: Enable this feature ONLY for the internal team.
+      - name: Enable for Internal Team
+        segment_keys:
+          - internal-team
+        enabled: true # Overrides the default 'enabled: false' for this segment.
+
+  # ========================================================================
+  # Feature Flag 2: A multivariate flag with variants.
+  # NAMESPACE: default
+  # ========================================================================
+  - name: Home Page Call-to-Action
+    key: home-page-cta
+    namespace_key: default
+    description: Tests different call-to-action buttons on the home page.
+    enabled: true
+    variants:
+      - key: cta-original
+        name: Original CTA
+        description: The original "Sign Up" button.
+      - key: cta-new-wording
+        name: New Wording CTA
+        description: "Get Started Free"
+      - key: cta-different-color
+        name: Different Color CTA
+        description: A green "Sign Up" button.
+    rules:
+      # Rule 1: All beta testers will see the new wording.
+      - name: Beta Testers See New Wording
+        segment_keys:
+          - beta-testers
+        distributions:
+          - variant_key: cta-new-wording
+            rollout: 1 # 1 = 100%
+
+      # Rule 2: 50/50 split for premium US customers between new color and original.
+      - name: Split Test for Premium Customers
+        segment_keys:
+          - premium-customers-us
+        distributions:
+          - variant_key: cta-different-color
+            rollout: 0.5 # 50%
+          - variant_key: cta-original
+            rollout: 0.5 # 50%
+    # Default behavior for users who don't match any rules above.
+    # Everyone else gets the original button.
+    default:
+      variant: cta-original
+
+  # ========================================================================
+  # Feature Flag 3: A flag with a gradual percentage-based rollout.
+  # NAMESPACE: experimental
+  # ========================================================================
+  - name: New Search Algorithm
+    key: new-search-algorithm
+    namespace_key: experimental
+    description: A new, faster search algorithm.
+    enabled: true # The flag is on, but rollout rules control who gets it.
+    rules:
+      # Rule 1: Roll out the new algorithm to 20% of all users.
+      # This is achieved by creating a rule with no segments, so it applies to everyone.
+      - name: 20% Gradual Rollout
+        distributions:
+          - variant_key: enabled
+            rollout: 0.2 # 20% of users will have the feature enabled.
+          - variant_key: disabled
+            rollout: 0.8 # 80% will have it disabled.
+
+  # ========================================================================
+  # Feature Flag 4: A flag targeted by a specific user property.
+  # NAMESPACE: default
+  # ========================================================================
+  - name: Show GDPR Consent Banner
+    key: show-gdpr-banner
+    namespace_key: default
+    description: Shows a GDPR consent banner for users in the EU.
+    enabled: false # Disabled by default.
+    rules:
+      # Rule 1: Enable only if the user's country code is in the EU list.
+      - name: Enable for EU Countries
+        enabled: true
+        constraints:
+          - type: STRING
+            property: country_code
+            comparison: IN
+            values:
+              - "DE"
+              - "FR"
+              - "ES"
+              - "IT"
+              - "PL"
+              - "NL"
