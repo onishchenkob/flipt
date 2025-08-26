@@ -19,6 +19,6 @@ jobs:
 
       # Pass GitHub token to flipt
       - run: flipt validate
-        working-directory: .flipt
+        working-directory: .flipt/flags/
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
