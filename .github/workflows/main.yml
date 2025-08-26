@@ -18,6 +18,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       # Pass GitHub token to flipt
-      - run: flipt validate
+      - run: flipt validate --config flipt.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
