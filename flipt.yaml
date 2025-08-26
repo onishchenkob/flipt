@@ -1,0 +1,7 @@
+storage:
+  default:
+    name: default
+    remote: .
+    backend:
+      type: memory
+
