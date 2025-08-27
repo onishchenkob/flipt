@@ -1,0 +1,13 @@
+git-workflow-v2:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+
+    - uses: flipt-io/setup-action@v0.5.0
+      with:
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        version: v2.0.0 # Use specific v2 version
+
+    # Validate flag configurations in your Git repository
+    - name: Validate flags
+      run: flipt validate
